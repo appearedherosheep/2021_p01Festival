@@ -4,49 +4,47 @@ from PyQt5.QtGui import QFont, QImage, QMovie, QPixmap
 from PyQt5.QtWidgets import QApplication, QPushButton, QWidget, QLabel, QVBoxLayout, QHBoxLayout, QDesktopWidget
 import cv2
 import threading
-import time
 from tm import predict
 
 
 class MyApp(QWidget):
     def __init__(self):
         self.running = False
-        
+
         super().__init__()
         self.setWindowTitle('너의 얼굴은')
         self.initUI()
         self.start_cam()
-        # self.show_img()
         self.showMaximized()
 
     def initUI(self):
         # 상단 제목
-        title_label = QLabel('너의 얼굴은')
-        title_label.setFont(QFont('나눔바른고딕', 100))
-        title_label.setAlignment(Qt.AlignCenter)
-        
+        self.title_label = QLabel('너의 얼굴은...')
+        self.title_label.setFont(QFont('나눔바른고딕', 100))
+        self.title_label.setAlignment(Qt.AlignCenter)
+
         # 중간 왼쪽 vbox
-        opencv_label = QLabel('너의 얼굴')
-        opencv_label.setFont(QFont('나눔바른고딕', 50))
-        opencv_label.setAlignment(Qt.AlignCenter)
+        # opencv_label = QLabel('너의 얼굴')
+        # opencv_label.setFont(QFont('나눔바른고딕', 50))
+        # opencv_label.setAlignment(Qt.AlignCenter)
         self.cam_label = QLabel()
 
         left_vbox = QVBoxLayout()
-        left_vbox.addStretch(0)
+        # left_vbox.addStretch(0)
         left_vbox.addWidget(self.cam_label)
-        left_vbox.addWidget(opencv_label)
-        
-        # 중간 오른쪽 
+        # left_vbox.addWidget(opencv_label)
+
+        # 중간 오른쪽
         self.animal_label = QLabel()
-        
+
         # 로딩중
         self.gif_movie = QMovie('loading (2).gif', QByteArray(), self)
         self.gif_movie.setCacheMode(QMovie.CacheAll)
         self.animal_label.setMovie(self.gif_movie)
-        
+
         self.cam_label.setMovie(self.gif_movie)
         self.gif_movie.start()
-        
+
         # 중간 hbox
         label_hbox = QHBoxLayout()
         label_hbox.addStretch(1)
@@ -54,19 +52,26 @@ class MyApp(QWidget):
         label_hbox.addStretch(1)
         label_hbox.addWidget(self.animal_label)
         label_hbox.addStretch(1)
-        
+
         # 아래 hbox
-        self.stop_btn = QPushButton('stop')
-        self.save_btn = QPushButton('save')
+        self.capture_btn = QPushButton('찰칵')
+        self.capture_btn.setFixedSize(300, 180)
+        self.capture_btn.setFont(QFont('나눔바른고딕', 70))
+
+        # self.retry_btn = QPushButton('리트')
+        # self.retry_btn.setFixedSize(300, 180)
+        # self.retry_btn.setFont(QFont('나눔바른고딕', 70))
 
         btn_hbox = QHBoxLayout()
-        btn_hbox.addWidget(self.stop_btn)
-        btn_hbox.addWidget(self.save_btn)
+        btn_hbox.addStretch(1)
+        btn_hbox.addWidget(self.capture_btn)
+        # btn_hbox.addWidget(self.retry_btn)
+        btn_hbox.addStretch(1)
 
-        self.save_btn.clicked.connect(self.save)
+        self.capture_btn.clicked.connect(self.capture)
 
         vbox = QVBoxLayout()
-        vbox.addWidget(title_label)
+        vbox.addWidget(self.title_label)
         vbox.addStretch(1)
         vbox.addLayout(label_hbox)
         vbox.addStretch(1)
@@ -92,6 +97,7 @@ class MyApp(QWidget):
                     w,
                     h,
                     w*c,
+                    # self.img.strides[0],
                     QImage.Format_RGB888
                 )
                 pixmap = QPixmap.fromImage(qImg)
@@ -106,18 +112,21 @@ class MyApp(QWidget):
         th.start()
         print("started..")
 
-    def save(self):
-        print(1)
-        time.sleep(3)
-        print(2)
+    def capture(self):
+        # print(1)
+        # time.sleep(3)
+        # print(2)
         cv2.imwrite('captured.jpg', self.img)
-        print(3)
+        # print(3)
         self.show_animal()
 
     def show_animal(self):
         predict_animal = predict('captured.jpg')
-        src = f'animal/{predict_animal}.jpg'
+        src = f'animal/{predict_animal[0]}.jpg'
         self.animal_label.setPixmap(QPixmap(src))
+        self.title_label.setText(
+            f'너의 얼굴은 {int(predict_animal[2]*100)}% {predict_animal[1]}'
+            )
 
     # def show_img(self):
     #     src = 'loading (2).gif'
@@ -125,14 +134,14 @@ class MyApp(QWidget):
     #     self.gif_movie.setCacheMode(QMovie.CacheAll)
     #     self.animal_label.setMovie(self.gif_movie)
     #     self.gif_movie.start()
-    
+
     # def show_img(self):
     #     src = 'loading (2).gif'
     #     self.gif_movie = QMovie(src, QByteArray(), self)
     #     self.gif_movie.setCacheMode(QMovie.CacheAll)
     #     self.animal_label.setMovie(self.gif_movie)
     #     self.gif_movie.start()
-        
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
