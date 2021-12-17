@@ -5,19 +5,18 @@ from PyQt5.QtWidgets import QApplication, QPushButton, QWidget, QLabel, QVBoxLay
 import cv2
 import threading
 from tm import predict, return_src
-from arduino import arduino_input
 import serial
 
 
 class MyApp(QWidget):
     def __init__(self):
         self.running = False
-
+        self.sum = 0
         super().__init__()
         self.setWindowTitle('너의 얼굴은')
         self.initUI()
         self.start_cam()
-        self.button_activated()
+        # self.button_activated()
         self.showMaximized()
         # self.arduino()
 
@@ -123,56 +122,44 @@ class MyApp(QWidget):
         th.start()
         print("started..")
 
-    def arduino_input(self):
-        ser = serial.Serial('COM8', 9600, timeout=1)
-        while 1:
-            if ser.readable():
-                val = ser.readline()
-                # print(val.decode()[:len(val)-1])
-                # print(val.decode())
-                val = val.decode()[:len(val)-1]
-                # print(type(val))
-                print(val)
+    # def arduino_input(self):
+    #     ser = serial.Serial('COM8', 9600, timeout=1)
+    #     while 1:
+    #         if ser.readable():
+    #             val = ser.readline()
+    #             # print(val.decode()[:len(val)-1])
+    #             # print(val.decode())
+    #             val = val.decode()[:len(val)-1]
+    #             # print(type(val))
+    #             print(val)
 
-                if len(val) > 0:
-                    print('Button CLicked')
-                    self.capture()
+    #             if len(val) > 0:
+    #                 print('Button CLicked')
+    #                 self.capture()
 
-    def button_activated(self):
-        th_2 = threading.Thread(target=self.arduino_input)
-        th_2.start()
-        print("Button Activated")
+    # def button_activated(self):
+    #     th_2 = threading.Thread(target=self.arduino_input)
+    #     th_2.start()
+    #     print("Button Activated")
 
     def capture(self):
         # print(1)
         # time.sleep(3)
         # print(2)
         self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
-        cv2.imwrite('captured.jpg', self.img)
+        name = f'picture/{self.sum}.jpg'
+        cv2.imwrite(name, self.img)
+        self.sum += 1
         # print(3)
         self.show_animal()
 
     def show_animal(self):
-        predict_animal = predict('captured.jpg')
+        predict_animal = predict(f'picture/{self.sum-1}.jpg')
         src = return_src(predict_animal[0])
         self.animal_label.setPixmap(QPixmap(src))
         self.title_label.setText(
             f'너의 얼굴은 {int(predict_animal[2]*100)}% {predict_animal[1]}'
         )
-
-    # def show_img(self):
-    #     src = 'loading (2).gif'
-    #     self.gif_movie = QMovie(src, QByteArray(), self)
-    #     self.gif_movie.setCacheMode(QMovie.CacheAll)
-    #     self.animal_label.setMovie(self.gif_movie)
-    #     self.gif_movie.start()
-
-    # def show_img(self):
-    #     src = 'loading (2).gif'
-    #     self.gif_movie = QMovie(src, QByteArray(), self)
-    #     self.gif_movie.setCacheMode(QMovie.CacheAll)
-    #     self.animal_label.setMovie(self.gif_movie)
-    #     self.gif_movie.start()
 
 
 if __name__ == '__main__':
