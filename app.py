@@ -4,7 +4,9 @@ from PyQt5.QtGui import QFont, QImage, QMovie, QPixmap
 from PyQt5.QtWidgets import QApplication, QPushButton, QWidget, QLabel, QVBoxLayout, QHBoxLayout, QDesktopWidget
 import cv2
 import threading
-from tm import predict
+from tm import predict, return_src
+from arduino import arduino_input
+import serial
 
 
 class MyApp(QWidget):
@@ -15,13 +17,21 @@ class MyApp(QWidget):
         self.setWindowTitle('너의 얼굴은')
         self.initUI()
         self.start_cam()
+        self.button_activated()
         self.showMaximized()
+        # self.arduino()
 
     def initUI(self):
         # 상단 제목
         self.title_label = QLabel('너의 얼굴은...')
         self.title_label.setFont(QFont('나눔바른고딕', 100))
         self.title_label.setAlignment(Qt.AlignCenter)
+
+        # 상단 설명
+        self.content_label = QLabel('찰칵을 누르면 사진이 찍힙니다')
+        self.content_label.setFont(QFont('나눔바른고딕', 40))
+        self.content_label.setStyleSheet('color : red;')
+        self.content_label.setAlignment(Qt.AlignCenter)
 
         # 중간 왼쪽 vbox
         # opencv_label = QLabel('너의 얼굴')
@@ -72,6 +82,7 @@ class MyApp(QWidget):
 
         vbox = QVBoxLayout()
         vbox.addWidget(self.title_label)
+        vbox.addWidget(self.content_label)
         vbox.addStretch(1)
         vbox.addLayout(label_hbox)
         vbox.addStretch(1)
@@ -112,21 +123,42 @@ class MyApp(QWidget):
         th.start()
         print("started..")
 
+    def arduino_input(self):
+        ser = serial.Serial('COM8', 9600, timeout=1)
+        while 1:
+            if ser.readable():
+                val = ser.readline()
+                # print(val.decode()[:len(val)-1])
+                # print(val.decode())
+                val = val.decode()[:len(val)-1]
+                # print(type(val))
+                print(val)
+
+                if len(val) > 0:
+                    print('Button CLicked')
+                    self.capture()
+
+    def button_activated(self):
+        th_2 = threading.Thread(target=self.arduino_input)
+        th_2.start()
+        print("Button Activated")
+
     def capture(self):
         # print(1)
         # time.sleep(3)
         # print(2)
+        self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
         cv2.imwrite('captured.jpg', self.img)
         # print(3)
         self.show_animal()
 
     def show_animal(self):
         predict_animal = predict('captured.jpg')
-        src = f'animal/{predict_animal[0]}.jpg'
+        src = return_src(predict_animal[0])
         self.animal_label.setPixmap(QPixmap(src))
         self.title_label.setText(
             f'너의 얼굴은 {int(predict_animal[2]*100)}% {predict_animal[1]}'
-            )
+        )
 
     # def show_img(self):
     #     src = 'loading (2).gif'
