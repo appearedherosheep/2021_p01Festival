@@ -16,9 +16,8 @@ class MyApp(QWidget):
         self.setWindowTitle('너의 얼굴은')
         self.initUI()
         self.start_cam()
-        # self.button_activated()
+        self.button_activated()
         self.showMaximized()
-        # self.arduino()
 
     def initUI(self):
         # 상단 제목
@@ -122,25 +121,25 @@ class MyApp(QWidget):
         th.start()
         print("started..")
 
-    # def arduino_input(self):
-    #     ser = serial.Serial('COM8', 9600, timeout=1)
-    #     while 1:
-    #         if ser.readable():
-    #             val = ser.readline()
-    #             # print(val.decode()[:len(val)-1])
-    #             # print(val.decode())
-    #             val = val.decode()[:len(val)-1]
-    #             # print(type(val))
-    #             print(val)
+    def arduino_input(self):
+        ser = serial.Serial('COM9', 9600, timeout=1)
+        while 1:
+            if ser.readable():
+                val = ser.readline()
+                # print(val.decode()[:len(val)-1])
+                # print(val.decode())
+                val = val.decode()[:len(val)-1]
+                # print(type(val))
+                print(val)
 
-    #             if len(val) > 0:
-    #                 print('Button CLicked')
-    #                 self.capture()
+                if len(val) > 0:
+                    print('Button CLicked')
+                    self.capture()
 
-    # def button_activated(self):
-    #     th_2 = threading.Thread(target=self.arduino_input)
-    #     th_2.start()
-    #     print("Button Activated")
+    def button_activated(self):
+        th_2 = threading.Thread(target=self.arduino_input)
+        th_2.start()
+        print("Button Activated")
 
     def capture(self):
         # print(1)
