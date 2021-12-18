@@ -3,6 +3,8 @@ from PIL import Image, ImageOps
 import numpy as np
 import random as rd
 dict = {0: '강아지', 1: '고양이', 2: '심해어', 3: '개구리', 4: '부엉이', 5: '라쿤', 6: '타조'}
+# dict = {0: '강아지', 1: '고양이', 2: '심해어', 3: '타조',
+# 4: '다람쥐', 5: '호랑이', 6: '오랑우탄', 7: '나무늘보', 8: '말'}
 
 
 def predict(src):
@@ -30,15 +32,15 @@ def predict(src):
     return (index_max, dict[index_max], percentage)
 
 
-def return_src(index) :
-    if index == 0 :
-        a = rd.randrange(1,8)
-    
+def return_src(index):
+    if index == 0:
+        a = rd.randrange(1, 8)
+
     elif index == 1:
-        a = rd.randrange(1,11)
-    
-    elif index == 2 :
-        a = rd.randrange(1,3)
-    else : 
+        a = rd.randrange(1, 11)
+
+    elif index == 2:
+        a = rd.randrange(1, 3)
+    else:
         a = 1
-    return f'animal/{index}/{a}.jpg'    
+    return f'animal/{index}/{a}.jpg'

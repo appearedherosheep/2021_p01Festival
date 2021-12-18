@@ -1,11 +1,14 @@
 import sys
+import threading
+
+import cv2
+import serial
 from PyQt5.QtCore import QByteArray, Qt
 from PyQt5.QtGui import QFont, QImage, QMovie, QPixmap
-from PyQt5.QtWidgets import QApplication, QPushButton, QWidget, QLabel, QVBoxLayout, QHBoxLayout, QDesktopWidget
-import cv2
-import threading
+from PyQt5.QtWidgets import (QApplication, QDesktopWidget, QHBoxLayout, QLabel,
+                             QPushButton, QVBoxLayout, QWidget)
+
 from tm import predict, return_src
-import serial
 
 
 class MyApp(QWidget):
@@ -31,61 +34,61 @@ class MyApp(QWidget):
         self.content_label.setStyleSheet('color : red;')
         self.content_label.setAlignment(Qt.AlignCenter)
 
-        # 중간 왼쪽 vbox
-        # opencv_label = QLabel('너의 얼굴')
-        # opencv_label.setFont(QFont('나눔바른고딕', 50))
-        # opencv_label.setAlignment(Qt.AlignCenter)
-        self.cam_label = QLabel()
+        top_vbox = QVBoxLayout()
+        top_vbox.addWidget(self.title_label)
+        top_vbox.addWidget(self.content_label)
 
+        # 중간 왼쪽
+        self.cam_label = QLabel()
         left_vbox = QVBoxLayout()
-        # left_vbox.addStretch(0)
         left_vbox.addWidget(self.cam_label)
-        # left_vbox.addWidget(opencv_label)
 
         # 중간 오른쪽
         self.animal_label = QLabel()
+        right_vbox = QVBoxLayout()
+        right_vbox.addWidget(self.animal_label)
 
         # 로딩중
         self.gif_movie = QMovie('loading (2).gif', QByteArray(), self)
         self.gif_movie.setCacheMode(QMovie.CacheAll)
-        self.animal_label.setMovie(self.gif_movie)
 
+        self.animal_label.setMovie(self.gif_movie)
         self.cam_label.setMovie(self.gif_movie)
+
         self.gif_movie.start()
 
         # 중간 hbox
-        label_hbox = QHBoxLayout()
-        label_hbox.addStretch(1)
-        label_hbox.addLayout(left_vbox)
-        label_hbox.addStretch(1)
-        label_hbox.addWidget(self.animal_label)
-        label_hbox.addStretch(1)
+        mid_hbox = QHBoxLayout()
+        mid_hbox.addStretch(1)
+        mid_hbox.addLayout(left_vbox)
+        mid_hbox.addStretch(1)
+        mid_hbox.addLayout(right_vbox)
+        mid_hbox.addStretch(1)
 
         # 아래 hbox
         self.capture_btn = QPushButton('찰칵')
         self.capture_btn.setFixedSize(300, 180)
         self.capture_btn.setFont(QFont('나눔바른고딕', 70))
+        self.capture_btn.setStyleSheet(
+            ""
+        )
 
-        # self.retry_btn = QPushButton('리트')
-        # self.retry_btn.setFixedSize(300, 180)
-        # self.retry_btn.setFont(QFont('나눔바른고딕', 70))
-
-        btn_hbox = QHBoxLayout()
-        btn_hbox.addStretch(1)
-        btn_hbox.addWidget(self.capture_btn)
-        # btn_hbox.addWidget(self.retry_btn)
-        btn_hbox.addStretch(1)
+        bottom_hbox = QHBoxLayout()
+        bottom_hbox.addStretch(1)
+        bottom_hbox.addWidget(self.capture_btn)
+        bottom_hbox.addStretch(1)
 
         self.capture_btn.clicked.connect(self.capture)
 
+        # set layout
         vbox = QVBoxLayout()
-        vbox.addWidget(self.title_label)
-        vbox.addWidget(self.content_label)
+        vbox.addLayout(top_vbox)
         vbox.addStretch(1)
-        vbox.addLayout(label_hbox)
+        vbox.addLayout(mid_hbox)
         vbox.addStretch(1)
-        vbox.addLayout(btn_hbox)
+        vbox.addLayout(bottom_hbox)
         vbox.addStretch(1)
+
         self.setLayout(vbox)
 
     def opencv(self):
@@ -145,6 +148,8 @@ class MyApp(QWidget):
         # print(1)
         # time.sleep(3)
         # print(2)
+        self.content_label.setText('결과에 상처 받지 마세요')
+        self.content_label.repaint()
         self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
         name = f'picture/{self.sum}.jpg'
         cv2.imwrite(name, self.img)
@@ -159,6 +164,8 @@ class MyApp(QWidget):
         self.title_label.setText(
             f'너의 얼굴은 {int(predict_animal[2]*100)}% {predict_animal[1]}'
         )
+        self.content_label.setText('찰칵을 누르면 사진이 찍힙니다')
+        # self.content_label.repaint()
 
 
 if __name__ == '__main__':
