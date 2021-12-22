@@ -5,8 +5,8 @@ import cv2
 import serial
 from PyQt5.QtCore import QByteArray, Qt
 from PyQt5.QtGui import QFont, QImage, QMovie, QPixmap
-from PyQt5.QtWidgets import (QApplication, QDesktopWidget, QHBoxLayout, QLabel,
-                             QPushButton, QVBoxLayout, QWidget)
+from PyQt5.QtWidgets import (
+    QApplication, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget)
 
 from tm import predict, return_src
 
@@ -19,18 +19,18 @@ class MyApp(QWidget):
         self.setWindowTitle('너의 얼굴은')
         self.initUI()
         self.start_cam()
-        self.button_activated()
+        # self.button_activated()
         self.showMaximized()
 
     def initUI(self):
         # 상단 제목
         self.title_label = QLabel('너의 얼굴은...')
-        self.title_label.setFont(QFont('나눔바른고딕', 100))
+        self.title_label.setFont(QFont('JejuGothic', 100))
         self.title_label.setAlignment(Qt.AlignCenter)
 
         # 상단 설명
-        self.content_label = QLabel('찰칵을 누르면 사진이 찍힙니다')
-        self.content_label.setFont(QFont('나눔바른고딕', 40))
+        self.content_label = QLabel('노트북 옆 되게 누르고 싶게 생긴 버튼을 누르면 사진이 찍힙니다')
+        self.content_label.setFont(QFont('JejuGothic', 40))
         self.content_label.setStyleSheet('color : red;')
         self.content_label.setAlignment(Qt.AlignCenter)
 
@@ -49,7 +49,7 @@ class MyApp(QWidget):
         right_vbox.addWidget(self.animal_label)
 
         # 로딩중
-        self.gif_movie = QMovie('loading (2).gif', QByteArray(), self)
+        self.gif_movie = QMovie('src/loading (2).gif', QByteArray(), self)
         self.gif_movie.setCacheMode(QMovie.CacheAll)
 
         self.animal_label.setMovie(self.gif_movie)
@@ -69,9 +69,6 @@ class MyApp(QWidget):
         self.capture_btn = QPushButton('찰칵')
         self.capture_btn.setFixedSize(300, 180)
         self.capture_btn.setFont(QFont('나눔바른고딕', 70))
-        self.capture_btn.setStyleSheet(
-            ""
-        )
 
         bottom_hbox = QHBoxLayout()
         bottom_hbox.addStretch(1)
@@ -109,7 +106,6 @@ class MyApp(QWidget):
                     w,
                     h,
                     w*c,
-                    # self.img.strides[0],
                     QImage.Format_RGB888
                 )
                 pixmap = QPixmap.fromImage(qImg)
@@ -125,14 +121,11 @@ class MyApp(QWidget):
         print("started..")
 
     def arduino_input(self):
-        ser = serial.Serial('COM9', 9600, timeout=1)
+        ser = serial.Serial('COM8', 9600, timeout=1)
         while 1:
             if ser.readable():
                 val = ser.readline()
-                # print(val.decode()[:len(val)-1])
-                # print(val.decode())
                 val = val.decode()[:len(val)-1]
-                # print(type(val))
                 print(val)
 
                 if len(val) > 0:
@@ -145,16 +138,13 @@ class MyApp(QWidget):
         print("Button Activated")
 
     def capture(self):
-        # print(1)
-        # time.sleep(3)
-        # print(2)
         self.content_label.setText('결과에 상처 받지 마세요')
+        # 아두이노 -> 아래꺼 주석
         self.content_label.repaint()
         self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
         name = f'picture/{self.sum}.jpg'
         cv2.imwrite(name, self.img)
         self.sum += 1
-        # print(3)
         self.show_animal()
 
     def show_animal(self):
@@ -164,8 +154,9 @@ class MyApp(QWidget):
         self.title_label.setText(
             f'너의 얼굴은 {int(predict_animal[2]*100)}% {predict_animal[1]}'
         )
-        self.content_label.setText('찰칵을 누르면 사진이 찍힙니다')
-        # self.content_label.repaint()
+        self.content_label.setText('노트북 옆 되게 누르고 싶게 생긴 버튼을 누르면 사진이 찍힙니다')
+        # 아두이노 -> 아래꺼 주석
+        self.content_label.repaint()
 
 
 if __name__ == '__main__':
